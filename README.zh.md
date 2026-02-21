@@ -2,7 +2,7 @@
 
 # nkmc SDK
 
-开放式 Agent API 网关 SDK。让 AI Agent 用 6 个类 Unix 命令发现和调用互联网上的任意 API，让开发者通过 DNS 验证注册自己的 API 供 Agent 发现。
+开放式 Agent API 网关 SDK。让 AI Agent 用 6 个类 Unix 命令发现和调用互联网上的任意 API，让开发者通过 DNS 验证注册自己的 API 供 Agent 发现。 — [nkmc.ai](https://nkmc.ai)
 
 | 包 | 说明 | npm |
 |---|------|-----|
@@ -46,17 +46,19 @@ nkmc cat /api.weather.gov/skill.md
 
 ### 可用服务
 
-网关上有 40+ 个 API 可供使用，包括：
+网关上有 40+ 个 API 可供使用（[浏览全部](https://nkmc.ai/explore)）：
 
-**开发工具** — GitHub、GitLab、Vercel、Sentry、PagerDuty、CircleCI、Postman
-**云与部署** — Cloudflare、DigitalOcean、Fly.io、Render
-**AI 与机器学习** — OpenAI、OpenRouter、HuggingFace
-**通信** — Slack、Discord、Twilio、Resend
-**生产力** — Notion、Asana、Jira、Spotify
-**数据库** — Supabase、Neon、Turso
-**商业** — Stripe
-**数据** — Wikipedia、Weather.gov、Datadog
-**区块链** — Ethereum RPC（Ankr、Alchemy、Infura、Arbitrum、Optimism、Base、Polygon）
+| 类别 | 服务 |
+|------|------|
+| **开发工具** | GitHub、GitLab、Vercel、Sentry、PagerDuty、CircleCI、Postman |
+| **云与部署** | Cloudflare、DigitalOcean、Fly.io、Render |
+| **AI 与机器学习** | OpenAI、OpenRouter、HuggingFace |
+| **通信** | Slack、Discord、Twilio、Resend |
+| **生产力** | Notion、Asana、Jira、Spotify |
+| **数据库** | Supabase、Neon、Turso |
+| **商业** | Stripe |
+| **数据** | Wikipedia、Weather.gov、Datadog |
+| **区块链** | Ethereum RPC（Ankr、Alchemy、Infura、Arbitrum、Optimism、Base、Polygon） |
 
 ```bash
 # 示例：查找并探索 API

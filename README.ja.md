@@ -2,7 +2,7 @@
 
 # nkmc SDK
 
-オープンなエージェント API ゲートウェイ SDK。AI エージェントが 6 つの Unix ライクなコマンドでインターネット上の任意の API を発見・呼び出し可能にし、開発者は DNS 検証を通じて自分の API をエージェント発見用に登録できます。
+オープンなエージェント API ゲートウェイ SDK。AI エージェントが 6 つの Unix ライクなコマンドでインターネット上の任意の API を発見・呼び出し可能にし、開発者は DNS 検証を通じて自分の API をエージェント発見用に登録できます。 — [nkmc.ai](https://nkmc.ai)
 
 | パッケージ | 説明 | npm |
 |-----------|------|-----|
@@ -46,17 +46,19 @@ nkmc cat /api.weather.gov/skill.md
 
 ### 利用可能なサービス
 
-ゲートウェイ上で 40 以上の API が利用可能です：
+ゲートウェイ上で 40 以上の API が利用可能です（[すべて見る](https://nkmc.ai/explore)）：
 
-**開発ツール** — GitHub、GitLab、Vercel、Sentry、PagerDuty、CircleCI、Postman
-**クラウド・デプロイ** — Cloudflare、DigitalOcean、Fly.io、Render
-**AI・機械学習** — OpenAI、OpenRouter、HuggingFace
-**コミュニケーション** — Slack、Discord、Twilio、Resend
-**プロダクティビティ** — Notion、Asana、Jira、Spotify
-**データベース** — Supabase、Neon、Turso
-**コマース** — Stripe
-**データ** — Wikipedia、Weather.gov、Datadog
-**ブロックチェーン** — Ethereum RPC（Ankr、Alchemy、Infura、Arbitrum、Optimism、Base、Polygon）
+| カテゴリ | サービス |
+|---------|----------|
+| **開発ツール** | GitHub、GitLab、Vercel、Sentry、PagerDuty、CircleCI、Postman |
+| **クラウド・デプロイ** | Cloudflare、DigitalOcean、Fly.io、Render |
+| **AI・機械学習** | OpenAI、OpenRouter、HuggingFace |
+| **コミュニケーション** | Slack、Discord、Twilio、Resend |
+| **プロダクティビティ** | Notion、Asana、Jira、Spotify |
+| **データベース** | Supabase、Neon、Turso |
+| **コマース** | Stripe |
+| **データ** | Wikipedia、Weather.gov、Datadog |
+| **ブロックチェーン** | Ethereum RPC（Ankr、Alchemy、Infura、Arbitrum、Optimism、Base、Polygon） |
 
 ```bash
 # 例：API を検索して探索

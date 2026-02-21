@@ -2,7 +2,7 @@
 
 # nkmc SDK
 
-Open agent API gateway SDK. Let AI agents discover and call any API on the internet with 6 Unix-like commands, and let developers register their APIs for agent discovery.
+Open agent API gateway SDK. Let AI agents discover and call any API on the internet with 6 Unix-like commands, and let developers register their APIs for agent discovery. — [nkmc.ai](https://nkmc.ai)
 
 | Package | Description | npm |
 |---------|-------------|-----|
@@ -46,17 +46,19 @@ nkmc cat /api.weather.gov/skill.md
 
 ### Available Services
 
-40+ APIs are available on the gateway, including:
+40+ APIs are available on the gateway ([explore all](https://nkmc.ai/explore)):
 
-**Developer Tools** — GitHub, GitLab, Vercel, Sentry, PagerDuty, CircleCI, Postman
-**Cloud & Deployment** — Cloudflare, DigitalOcean, Fly.io, Render
-**AI & ML** — OpenAI, OpenRouter, HuggingFace
-**Communication** — Slack, Discord, Twilio, Resend
-**Productivity** — Notion, Asana, Jira, Spotify
-**Database** — Supabase, Neon, Turso
-**Commerce** — Stripe
-**Data** — Wikipedia, Weather.gov, Datadog
-**Blockchain** — Ethereum RPC (Ankr, Alchemy, Infura, Arbitrum, Optimism, Base, Polygon)
+| Category | Services |
+|----------|----------|
+| **Developer Tools** | GitHub, GitLab, Vercel, Sentry, PagerDuty, CircleCI, Postman |
+| **Cloud & Deployment** | Cloudflare, DigitalOcean, Fly.io, Render |
+| **AI & ML** | OpenAI, OpenRouter, HuggingFace |
+| **Communication** | Slack, Discord, Twilio, Resend |
+| **Productivity** | Notion, Asana, Jira, Spotify |
+| **Database** | Supabase, Neon, Turso |
+| **Commerce** | Stripe |
+| **Data** | Wikipedia, Weather.gov, Datadog |
+| **Blockchain** | Ethereum RPC (Ankr, Alchemy, Infura, Arbitrum, Optimism, Base, Polygon) |
 
 ```bash
 # Example: find and explore APIs
