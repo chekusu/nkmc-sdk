@@ -63,7 +63,7 @@ function extractRouteFromCall(
   if (firstArg.getKind() !== SyntaxKind.StringLiteral) return null;
 
   const path = firstArg.asKind(SyntaxKind.StringLiteral)?.getLiteralValue();
-  if (!path) return null;
+  if (!path || !path.startsWith("/")) return null;
 
   const description = extractLeadingComment(call);
   const filePath = relative(projectDir, call.getSourceFile().getFilePath());
@@ -133,7 +133,7 @@ async function findTsFiles(dir: string): Promise<string[]> {
 
 async function findFiles(dir: string, pattern: RegExp): Promise<string[]> {
   const results: string[] = [];
-  const SKIP = new Set(["node_modules", ".next", "dist", "build", ".git"]);
+  const SKIP = new Set(["node_modules", ".next", "dist", "build", ".git", ".wrangler", ".output", ".nuxt", ".svelte-kit", ".vercel"]);
 
   async function walk(current: string) {
     const entries = await readdir(current, { withFileTypes: true });
