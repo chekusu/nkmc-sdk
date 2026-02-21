@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import { createClient } from "../gateway/client.js";
+import { getAuthHint } from "../keys/provider-map.js";
 
 function output(result: unknown): void {
   console.log(JSON.stringify(result));
@@ -87,7 +88,11 @@ function handleError(err: unknown, cmdPath?: string): never {
     const domain = (cmdPath && extractDomain(cmdPath)) ||
       message.match(/([a-z0-9-]+(?:\.[a-z0-9-]+){1,})/i)?.[1] || null;
     if (domain) {
+      const hint = getAuthHint(domain);
       console.error(`Error: Authentication required for ${domain}`);
+      if (hint?.guideUrl) {
+        console.error(`  Get your key:  ${hint.guideUrl}`);
+      }
       console.error(`  Set your key:  nkmc keys set ${domain} --token <YOUR_KEY> --sync`);
       console.error(`  Then retry your command.`);
       process.exit(1);
