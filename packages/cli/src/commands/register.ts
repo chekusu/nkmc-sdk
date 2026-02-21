@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { getToken } from "../credentials.js";
+import { getToken, saveToken } from "../credentials.js";
 
 export interface RegisterOptions {
   gatewayUrl: string;
@@ -39,10 +39,33 @@ export async function registerService(options: RegisterOptions): Promise<void> {
   console.log(`Registered ${result.name} as ${result.domain}`);
 }
 
+async function renewToken(
+  gatewayUrl: string,
+  domain: string,
+): Promise<string | null> {
+  const baseUrl = gatewayUrl.replace(/\/$/, "");
+  try {
+    const res = await fetch(`${baseUrl}/domains/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domain }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { publishToken?: string };
+    if (!data.publishToken) return null;
+    await saveToken(domain, data.publishToken);
+    console.log(`Token renewed for ${domain}`);
+    return data.publishToken;
+  } catch {
+    return null;
+  }
+}
+
 export async function resolveToken(options: {
   token?: string;
   adminToken?: string;
   domain?: string;
+  gatewayUrl?: string;
 }): Promise<string> {
   // 1. --token flag
   if (options.token) return options.token;
@@ -54,6 +77,13 @@ export async function resolveToken(options: {
   if (options.domain) {
     const stored = await getToken(options.domain);
     if (stored) return stored;
+
+    // 3b. Token expired → auto-renew from gateway
+    const gw = options.gatewayUrl ?? process.env.NKMC_GATEWAY_URL;
+    if (gw) {
+      const renewed = await renewToken(gw, options.domain);
+      if (renewed) return renewed;
+    }
   }
 
   // 4. --admin-token flag (deprecated)
@@ -94,6 +124,7 @@ export async function runRegister(options: {
     token: options.token,
     adminToken: options.adminToken,
     domain,
+    gatewayUrl,
   });
 
   await registerService({
