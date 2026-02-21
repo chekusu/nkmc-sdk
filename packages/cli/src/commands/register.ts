@@ -1,15 +1,16 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { getToken } from "../credentials.js";
 
 export interface RegisterOptions {
   gatewayUrl: string;
-  adminToken: string;
+  token: string;
   domain: string;
   skillMdPath?: string;
 }
 
 export async function registerService(options: RegisterOptions): Promise<void> {
-  const { gatewayUrl, adminToken, domain, skillMdPath } = options;
+  const { gatewayUrl, token, domain, skillMdPath } = options;
 
   const mdPath = skillMdPath ?? join(process.cwd(), ".well-known", "skill.md");
   const skillMd = await readFile(mdPath, "utf-8");
@@ -23,7 +24,7 @@ export async function registerService(options: RegisterOptions): Promise<void> {
   const res = await fetch(url, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${adminToken}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "text/markdown",
     },
     body: skillMd,
@@ -38,8 +39,42 @@ export async function registerService(options: RegisterOptions): Promise<void> {
   console.log(`Registered ${result.name} as ${result.domain}`);
 }
 
+export async function resolveToken(options: {
+  token?: string;
+  adminToken?: string;
+  domain?: string;
+}): Promise<string> {
+  // 1. --token flag
+  if (options.token) return options.token;
+
+  // 2. NKMC_PUBLISH_TOKEN env
+  if (process.env.NKMC_PUBLISH_TOKEN) return process.env.NKMC_PUBLISH_TOKEN;
+
+  // 3. ~/.nkmc/credentials.json (domain-scoped)
+  if (options.domain) {
+    const stored = await getToken(options.domain);
+    if (stored) return stored;
+  }
+
+  // 4. --admin-token flag (deprecated)
+  if (options.adminToken) {
+    console.warn("Warning: --admin-token is deprecated. Use `nkmc claim` to obtain a publish token.");
+    return options.adminToken;
+  }
+
+  // 5. NKMC_ADMIN_TOKEN env (backward compat)
+  if (process.env.NKMC_ADMIN_TOKEN) {
+    return process.env.NKMC_ADMIN_TOKEN;
+  }
+
+  throw new Error(
+    "No auth token found. Use `nkmc claim <domain>` to obtain a publish token, or provide --token.",
+  );
+}
+
 export async function runRegister(options: {
   gatewayUrl?: string;
+  token?: string;
   adminToken?: string;
   domain?: string;
   dir?: string;
@@ -48,18 +83,11 @@ export async function runRegister(options: {
 
   const gatewayUrl =
     options.gatewayUrl ?? process.env.NKMC_GATEWAY_URL;
-  const adminToken =
-    options.adminToken ?? process.env.NKMC_ADMIN_TOKEN;
   const domain = options.domain ?? process.env.NKMC_DOMAIN;
 
   if (!gatewayUrl) {
     throw new Error(
       "Gateway URL is required. Use --gateway-url or NKMC_GATEWAY_URL env var.",
-    );
-  }
-  if (!adminToken) {
-    throw new Error(
-      "Admin token is required. Use --admin-token or NKMC_ADMIN_TOKEN env var.",
     );
   }
   if (!domain) {
@@ -68,9 +96,15 @@ export async function runRegister(options: {
     );
   }
 
+  const token = await resolveToken({
+    token: options.token,
+    adminToken: options.adminToken,
+    domain,
+  });
+
   await registerService({
     gatewayUrl,
-    adminToken,
+    token,
     domain,
     skillMdPath: join(projectDir, ".well-known", "skill.md"),
   });

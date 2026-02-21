@@ -52,6 +52,7 @@ export function buildSkillDefinition(
 export interface GenerateOptions {
   register?: boolean;
   gatewayUrl?: string;
+  token?: string;
   adminToken?: string;
   domain?: string;
 }
@@ -94,23 +95,27 @@ export async function runGenerate(projectDir: string, options?: GenerateOptions)
 
   // Auto-register if requested
   if (options?.register) {
-    const { registerService } = await import("./register.js");
+    const { registerService, resolveToken } = await import("./register.js");
     const gatewayUrl =
       options.gatewayUrl ?? process.env.NKMC_GATEWAY_URL;
-    const adminToken =
-      options.adminToken ?? process.env.NKMC_ADMIN_TOKEN;
     const domain = options.domain ?? process.env.NKMC_DOMAIN;
 
-    if (!gatewayUrl || !adminToken || !domain) {
+    if (!gatewayUrl || !domain) {
       console.log(
-        "Skipping registration: --gateway-url, --admin-token, and --domain are all required.",
+        "Skipping registration: --gateway-url and --domain are required.",
       );
       return;
     }
 
+    const token = await resolveToken({
+      token: options.token,
+      adminToken: options.adminToken,
+      domain,
+    });
+
     await registerService({
       gatewayUrl,
-      adminToken,
+      token,
       domain,
       skillMdPath: outputPath,
     });

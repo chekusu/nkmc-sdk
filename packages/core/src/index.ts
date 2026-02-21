@@ -38,7 +38,10 @@ export { verifyRequest, type VerifyResult } from "./auth/guard.js";
 export {
   signJwt,
   verifyJwt,
+  signPublishToken,
+  verifyPublishToken,
   type NkmcJwtPayload,
+  type PublishTokenPayload,
   type GatewayKeyPair,
   type SignOptions,
 } from "./auth/jwt.js";

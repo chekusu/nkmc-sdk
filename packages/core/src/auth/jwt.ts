@@ -72,3 +72,45 @@ export async function verifyJwt(
     exp: payload.exp as number,
   };
 }
+
+// --- Publish Token (domain-scoped) ---
+
+export interface PublishTokenPayload {
+  sub: string;
+  scope: "publish";
+  iss: string;
+  iat: number;
+  exp: number;
+}
+
+export async function signPublishToken(
+  privateKey: JWK,
+  domain: string,
+  options?: SignOptions
+): Promise<string> {
+  const key = (await importJWK(privateKey, "EdDSA")) as CryptoKey;
+  return new SignJWT({ sub: domain, scope: "publish" })
+    .setProtectedHeader({ alg: "EdDSA" })
+    .setIssuedAt()
+    .setIssuer(ISSUER)
+    .setExpirationTime(options?.expiresIn || "90d")
+    .sign(key);
+}
+
+export async function verifyPublishToken(
+  token: string,
+  publicKey: JWK
+): Promise<PublishTokenPayload> {
+  const key = (await importJWK(publicKey, "EdDSA")) as CryptoKey;
+  const { payload } = await jwtVerify(token, key, { issuer: ISSUER });
+  if (payload.scope !== "publish") {
+    throw new Error("Not a publish token");
+  }
+  return {
+    sub: payload.sub as string,
+    scope: "publish",
+    iss: payload.iss as string,
+    iat: payload.iat as number,
+    exp: payload.exp as number,
+  };
+}
