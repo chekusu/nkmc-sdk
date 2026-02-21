@@ -19,12 +19,11 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
-      - run: npm install -g npm@latest
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r build
       - name: Publish @nkmc/core
-        run: npm publish --provenance --access public || true
+        run: pnpm publish --provenance --access public --no-git-checks || true
         working-directory: packages/core
       - name: Publish @nkmc/cli
-        run: npm publish --provenance --access public || true
+        run: pnpm publish --provenance --access public --no-git-checks || true
         working-directory: packages/cli
