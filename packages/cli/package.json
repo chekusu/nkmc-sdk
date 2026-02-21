@@ -1,6 +1,6 @@
 {
   "name": "@nkmc/cli",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "CLI for scanning and registering APIs with the nkmc gateway",
   "license": "MIT",
   "type": "module",
