@@ -1,6 +1,6 @@
 {
   "name": "@nkmc/core",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Server-side SDK for authenticating agent requests via the nkmc gateway",
   "license": "MIT",
   "type": "module",
