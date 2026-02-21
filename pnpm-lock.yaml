@@ -35,6 +35,10 @@ importers:
       ts-morph:
         specifier: ^27.0.2
         version: 27.0.2
+    optionalDependencies:
+      '@shipkey/core':
+        specifier: ^0.1.0
+        version: 0.1.0
 
   packages/core:
     dependencies:
@@ -356,6 +360,9 @@ packages:
     resolution: {integrity: sha512-QFsBgQNTnh5K0t/sBsjJLq24YVqEIVkGpfN2VHsnN90soZyhaiA9UUHufcctVNL4ypJY0wrwad0wslx2KJQ1/w==}
     cpu: [x64]
     os: [win32]
+
+  '@shipkey/core@0.1.0':
+    resolution: {integrity: sha512-nybcvzRh8ILAqQp2WNBsqI631tVcgjcWSGCsrjn02nGExkW8Xxy21Fq76tuUE4u4CmG2Qp3OxbrIPxwEpN7A2Q==}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -973,6 +980,9 @@ snapshots:
     optional: true
 
   '@rollup/rollup-win32-x64-msvc@4.58.0':
+    optional: true
+
+  '@shipkey/core@0.1.0':
     optional: true
 
   '@standard-schema/spec@1.1.0': {}

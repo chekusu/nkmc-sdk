@@ -1,4 +1,6 @@
-import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import { Command } from "commander";
 import { runInit } from "./commands/init.js";
 import { runGenerate } from "./commands/generate.js";
@@ -8,8 +10,8 @@ import { runAuth } from "./commands/auth.js";
 import { registerFsCommands } from "./commands/fs.js";
 import { registerKeysCommand } from "./commands/keys.js";
 
-const require = createRequire(import.meta.url);
-const { version } = require("../../package.json");
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const { version } = JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf-8"));
 
 const program = new Command();
 
