@@ -1,9 +1,35 @@
+import type { JWK } from "jose";
 import { verifyJwt } from "./jwt.js";
 import type { AgentContext, AuthError, GuardOptions, NkmcInitOptions } from "./types.js";
+
+const DEFAULT_GATEWAY_URL = "https://api.nkmc.ai";
 
 export type VerifyResult =
   | { ok: true; agent: AgentContext }
   | { ok: false; error: AuthError };
+
+/** Cached public key per gateway URL */
+const jwksCache = new Map<string, JWK>();
+
+export async function resolvePublicKey(options: NkmcInitOptions): Promise<JWK> {
+  if (options.gatewayPublicKey) return options.gatewayPublicKey;
+
+  const gatewayUrl = (options.gatewayUrl || DEFAULT_GATEWAY_URL).replace(/\/$/, "");
+  const cached = jwksCache.get(gatewayUrl);
+  if (cached) return cached;
+
+  const res = await globalThis.fetch(`${gatewayUrl}/.well-known/jwks.json`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch gateway JWKS: ${res.status}`);
+  }
+  const { keys } = (await res.json()) as { keys: JWK[] };
+  if (!keys || keys.length === 0) {
+    throw new Error("No keys found in gateway JWKS response");
+  }
+  const key = keys[0];
+  jwksCache.set(gatewayUrl, key);
+  return key;
+}
 
 export async function verifyRequest(
   authHeader: string | undefined,
@@ -21,7 +47,8 @@ export async function verifyRequest(
 
   let payload;
   try {
-    payload = await verifyJwt(token, initOptions.gatewayPublicKey);
+    const publicKey = await resolvePublicKey(initOptions);
+    payload = await verifyJwt(token, publicKey);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Invalid token";
     if (message.includes("exp") || message.includes("expired")) {

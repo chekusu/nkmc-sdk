@@ -119,15 +119,11 @@ nkmc register --domain api.example.com
 
 ### 5. ルートの保護
 
-- **`siteId`** — ステップ 3 で申請したドメイン（例：`api.example.com`）
-- **`NKMC_PUBLIC_KEY`** — ゲートウェイの EdDSA 公開鍵（JWK 形式）。[`https://api.nkmc.ai/.well-known/jwks.json`](https://api.nkmc.ai/.well-known/jwks.json) から取得し、環境変数に保存してください。
-
 ```typescript
 import { Nkmc } from "@nkmc/core";
 
 const nkmc = Nkmc.init({
-  siteId: "api.example.com",                   // 申請したドメイン
-  gatewayPublicKey: process.env.NKMC_PUBLIC_KEY, // /.well-known/jwks.json から取得
+  siteId: "api.example.com", // ステップ 3 で申請したドメイン
 });
 
 // すべてのエージェントリクエストを検証
@@ -137,6 +133,8 @@ app.use(nkmc.guard());
 app.use("/admin", nkmc.guard({ roles: ["premium"] }));
 ```
 
+> ゲートウェイの公開鍵は `https://api.nkmc.ai/.well-known/jwks.json` から自動取得・キャッシュされます。`gatewayPublicKey` で明示的に指定することも可能です。
+
 ### リクエストを直接検証
 
 ```typescript
@@ -144,7 +142,7 @@ import { verifyRequest } from "@nkmc/core";
 
 const result = await verifyRequest(
   req.headers.authorization,
-  { siteId: "api.example.com", gatewayPublicKey: publicKey }
+  { siteId: "api.example.com" }
 );
 
 if (result.ok) {

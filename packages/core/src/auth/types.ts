@@ -11,7 +11,10 @@ export interface GuardOptions {
 
 export interface NkmcInitOptions {
   siteId: string;
-  gatewayPublicKey: JWK;
+  /** EdDSA public key (JWK). If omitted, auto-fetched from gateway JWKS endpoint. */
+  gatewayPublicKey?: JWK;
+  /** Gateway base URL (default: https://api.nkmc.ai) */
+  gatewayUrl?: string;
 }
 
 export type AuthError =
