@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -22,8 +21,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r build
       - name: Publish @nkmc/core
-        run: pnpm pack && npm publish *.tgz --provenance --access public || true
+        run: pnpm pack && npm publish *.tgz --access public || true
         working-directory: packages/core
       - name: Publish @nkmc/cli
-        run: pnpm pack && npm publish *.tgz --provenance --access public || true
+        run: pnpm pack && npm publish *.tgz --access public || true
         working-directory: packages/cli
