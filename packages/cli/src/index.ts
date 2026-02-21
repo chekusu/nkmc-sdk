@@ -5,6 +5,7 @@ import { runRegister } from "./commands/register.js";
 import { runClaim } from "./commands/claim.js";
 import { runAuth } from "./commands/auth.js";
 import { registerFsCommands } from "./commands/fs.js";
+import { registerKeysCommand } from "./commands/keys.js";
 
 const program = new Command();
 
@@ -81,5 +82,6 @@ program
   });
 
 registerFsCommands(program);
+registerKeysCommand(program);
 
 program.parse();

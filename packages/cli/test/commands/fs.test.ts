@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { GatewayClient, createClient } from "../../src/gateway/client.js";
-import { formatGrepResults, isSearchResults, isEndpointResults } from "../../src/commands/fs.js";
+import { formatGrepResults, isSearchResults, isEndpointResults, extractDomain, isAuthError } from "../../src/commands/fs.js";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -397,5 +397,58 @@ describe("pipe expression parsing", () => {
     expect(() => parsePipe(["cat /a | cat /b"])).toThrow(
       "Pipe step 2 must be a 'write' command",
     );
+  });
+});
+
+describe("extractDomain", () => {
+  it("should extract domain from path", () => {
+    expect(extractDomain("/rpc.ankr.com/blocks/")).toBe("rpc.ankr.com");
+  });
+
+  it("should extract domain from path without leading slash", () => {
+    expect(extractDomain("api.openai.com/v1/models")).toBe("api.openai.com");
+  });
+
+  it("should handle versioned paths", () => {
+    expect(extractDomain("/api.cloudflare.com@v5/zones")).toBe("api.cloudflare.com");
+  });
+
+  it("should return null for non-domain paths", () => {
+    expect(extractDomain("/")).toBeNull();
+    expect(extractDomain("")).toBeNull();
+    expect(extractDomain("/localdir")).toBeNull();
+  });
+});
+
+describe("isAuthError", () => {
+  it("should detect direct 401", () => {
+    expect(isAuthError("Gateway error 401: Unauthorized")).toBe(true);
+  });
+
+  it("should detect direct 403", () => {
+    expect(isAuthError("Gateway error 403: Forbidden")).toBe(true);
+  });
+
+  it("should detect 500-wrapped Unauthorized", () => {
+    const msg = 'Gateway error 500: {"ok":false,"error":{"code":"BACKEND_ERROR","message":"Unauthorized: You must authenticate your request with an API key."}}';
+    expect(isAuthError(msg)).toBe(true);
+  });
+
+  it("should detect 500-wrapped 'authenticate' keyword", () => {
+    const msg = 'Gateway error 500: {"ok":false,"error":{"code":"BACKEND_ERROR","message":"Please authenticate with a valid API key"}}';
+    expect(isAuthError(msg)).toBe(true);
+  });
+
+  it("should detect 500-wrapped 'api key' keyword", () => {
+    const msg = 'Gateway error 500: {"ok":false,"error":{"code":"BACKEND_ERROR","message":"Missing API key"}}';
+    expect(isAuthError(msg)).toBe(true);
+  });
+
+  it("should NOT match generic 500 errors", () => {
+    expect(isAuthError("Gateway error 500: Internal Server Error")).toBe(false);
+  });
+
+  it("should NOT match 404", () => {
+    expect(isAuthError("Gateway error 404: Not Found")).toBe(false);
   });
 });

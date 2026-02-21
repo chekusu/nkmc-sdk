@@ -16,9 +16,15 @@ interface AgentTokenEntry {
   expiresAt: string;
 }
 
+export interface KeyEntry {
+  auth: { type: string; token?: string; header?: string; key?: string };
+  updatedAt: string;
+}
+
 interface CredentialStore {
   tokens: Record<string, TokenEntry>;
   agentToken?: AgentTokenEntry;
+  keys?: Record<string, KeyEntry>;
 }
 
 function nkmcDir(): string {
@@ -113,4 +119,42 @@ export async function getToken(domain: string): Promise<string | null> {
   }
 
   return entry.publishToken;
+}
+
+// --- BYOK key management ---
+
+async function saveCredentials(creds: CredentialStore): Promise<void> {
+  const dir = nkmcDir();
+  await mkdir(dir, { recursive: true });
+  const filePath = credentialsPath();
+  await writeFile(filePath, JSON.stringify(creds, null, 2) + "\n");
+  await chmod(filePath, 0o600);
+}
+
+export async function saveKey(
+  domain: string,
+  auth: KeyEntry["auth"],
+): Promise<void> {
+  const creds = await loadCredentials();
+  if (!creds.keys) creds.keys = {};
+  creds.keys[domain] = { auth, updatedAt: new Date().toISOString() };
+  await saveCredentials(creds);
+}
+
+export async function getKey(domain: string): Promise<KeyEntry | null> {
+  const creds = await loadCredentials();
+  return creds.keys?.[domain] ?? null;
+}
+
+export async function listKeys(): Promise<Record<string, KeyEntry>> {
+  const creds = await loadCredentials();
+  return creds.keys ?? {};
+}
+
+export async function deleteKey(domain: string): Promise<boolean> {
+  const creds = await loadCredentials();
+  if (!creds.keys?.[domain]) return false;
+  delete creds.keys[domain];
+  await saveCredentials(creds);
+  return true;
 }

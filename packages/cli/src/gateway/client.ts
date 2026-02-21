@@ -4,8 +4,12 @@ export class GatewayClient {
     private token: string,
   ) {}
 
+  private baseUrl(): string {
+    return this.gatewayUrl.replace(/\/$/, "");
+  }
+
   async execute(command: string): Promise<unknown> {
-    const url = `${this.gatewayUrl.replace(/\/$/, "")}/execute`;
+    const url = `${this.baseUrl()}/execute`;
     const res = await fetch(url, {
       method: "POST",
       headers: {
@@ -19,6 +23,51 @@ export class GatewayClient {
       throw new Error(`Gateway error ${res.status}: ${body}`);
     }
     return res.json();
+  }
+
+  // --- BYOK methods ---
+
+  async uploadByok(
+    domain: string,
+    auth: { type: string; token?: string; header?: string; key?: string },
+  ): Promise<void> {
+    const url = `${this.baseUrl()}/byok/${domain}`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ auth }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`BYOK upload failed ${res.status}: ${body}`);
+    }
+  }
+
+  async listByok(): Promise<{ domains: string[] }> {
+    const url = `${this.baseUrl()}/byok`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${this.token}` },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`BYOK list failed ${res.status}: ${body}`);
+    }
+    return res.json() as Promise<{ domains: string[] }>;
+  }
+
+  async deleteByok(domain: string): Promise<void> {
+    const url = `${this.baseUrl()}/byok/${domain}`;
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${this.token}` },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`BYOK delete failed ${res.status}: ${body}`);
+    }
   }
 }
 

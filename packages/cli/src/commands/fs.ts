@@ -59,8 +59,41 @@ export function formatGrepResults(data: unknown): string {
   return JSON.stringify(data);
 }
 
-function handleError(err: unknown): never {
+/** Extract domain from an nkmc path like "/rpc.ankr.com/blocks/" */
+export function extractDomain(path: string): string | null {
+  const segments = path.replace(/^\/+/, "").split("/");
+  const first = segments[0];
+  if (!first) return null;
+  // Strip @version suffix
+  const domain = first.includes("@") ? first.slice(0, first.indexOf("@")) : first;
+  // Must look like a domain (has at least one dot)
+  return domain.includes(".") ? domain : null;
+}
+
+/** Detect auth-related errors in gateway responses (401, 403, or 500-wrapped upstream auth failures) */
+export function isAuthError(message: string): boolean {
+  // Direct 401/403 from gateway
+  if (/Gateway error (401|403):/.test(message)) return true;
+  // 500-wrapped upstream auth failure (BACKEND_ERROR with auth keywords)
+  if (/Gateway error 500:/.test(message) && /\b(Unauthorized|Unauthenticated|authenticate|API key|api[_-]?key)\b/i.test(message)) return true;
+  return false;
+}
+
+function handleError(err: unknown, cmdPath?: string): never {
   const message = err instanceof Error ? err.message : String(err);
+
+  if (isAuthError(message)) {
+    // Try to get domain from the command path first, then fall back to error message
+    const domain = (cmdPath && extractDomain(cmdPath)) ||
+      message.match(/([a-z0-9-]+(?:\.[a-z0-9-]+){1,})/i)?.[1] || null;
+    if (domain) {
+      console.error(`Error: Authentication required for ${domain}`);
+      console.error(`  Set your key:  nkmc keys set ${domain} --token <YOUR_KEY> --sync`);
+      console.error(`  Then retry your command.`);
+      process.exit(1);
+    }
+  }
+
   console.error(JSON.stringify({ error: message }));
   process.exit(1);
 }
@@ -76,7 +109,7 @@ export function registerFsCommands(program: Command): void {
         const result = await client.execute(`ls ${path}`);
         output(result);
       } catch (err) {
-        handleError(err);
+        handleError(err, path);
       }
     });
 
@@ -90,7 +123,7 @@ export function registerFsCommands(program: Command): void {
         const result = await client.execute(`cat ${path}`);
         output(result);
       } catch (err) {
-        handleError(err);
+        handleError(err, path);
       }
     });
 
@@ -105,7 +138,7 @@ export function registerFsCommands(program: Command): void {
         const result = await client.execute(`write ${path} ${data}`);
         output(result);
       } catch (err) {
-        handleError(err);
+        handleError(err, path);
       }
     });
 
@@ -119,7 +152,7 @@ export function registerFsCommands(program: Command): void {
         const result = await client.execute(`rm ${path}`);
         output(result);
       } catch (err) {
-        handleError(err);
+        handleError(err, path);
       }
     });
 
@@ -134,7 +167,7 @@ export function registerFsCommands(program: Command): void {
         const result = await client.execute(`grep ${pattern} ${path}`);
         console.log(formatGrepResults(result));
       } catch (err) {
-        handleError(err);
+        handleError(err, path);
       }
     });
 
@@ -181,7 +214,7 @@ export function registerFsCommands(program: Command): void {
 
         output(result);
       } catch (err) {
-        handleError(err);
+        handleError(err, source.slice("cat ".length).trim());
       }
     });
 }

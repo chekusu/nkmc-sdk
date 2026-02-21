@@ -1,6 +1,6 @@
 {
   "name": "@nkmc/cli",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "description": "CLI for scanning and registering APIs with the nkmc gateway",
   "license": "MIT",
   "type": "module",
@@ -16,6 +16,9 @@
     "@nkmc/core": "workspace:^",
     "commander": "^13.0.0",
     "ts-morph": "^27.0.2"
+  },
+  "optionalDependencies": {
+    "@shipkey/core": "^0.1.0"
   },
   "repository": {
     "type": "git",
