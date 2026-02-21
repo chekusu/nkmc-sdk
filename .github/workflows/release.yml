@@ -22,8 +22,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r build
       - name: Publish @nkmc/core
-        run: pnpm publish --provenance --access public --no-git-checks || true
+        run: pnpm pack && npm publish *.tgz --provenance --access public || true
         working-directory: packages/core
       - name: Publish @nkmc/cli
-        run: pnpm publish --provenance --access public --no-git-checks || true
+        run: pnpm pack && npm publish *.tgz --provenance --access public || true
         working-directory: packages/cli
