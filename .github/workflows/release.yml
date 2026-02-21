@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -20,9 +21,13 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r build
+      - name: Resolve workspace references
+        run: |
+          CORE_VERSION=$(node -p "require('./packages/core/package.json').version")
+          sed -i "s|\"workspace:\\^\"|\"\^$CORE_VERSION\"|g" packages/cli/package.json
       - name: Publish @nkmc/core
-        run: pnpm pack && npm publish *.tgz --access public || true
+        run: npm publish --provenance --access public || true
         working-directory: packages/core
       - name: Publish @nkmc/cli
-        run: pnpm pack && npm publish *.tgz --access public || true
+        run: npm publish --provenance --access public || true
         working-directory: packages/cli
