@@ -99,4 +99,56 @@ describe("scanRoutes", () => {
     const routes = await scanRoutes(tempDir, "express");
     expect(routes).toHaveLength(0);
   });
+
+  it("should skip .wrangler directory", async () => {
+    await setup({
+      "src/index.ts": `
+        import { Hono } from "hono";
+        const app = new Hono();
+        app.get("/api/real", (c) => c.json({}));
+        export default app;
+      `,
+      ".wrangler/tmp/dev-abc123/index.js": `
+        app.get("/api/real", (c) => c.json({}));
+        app.post("/api/duplicate", (c) => c.json({}));
+      `,
+    });
+    const routes = await scanRoutes(tempDir, "hono");
+    expect(routes).toHaveLength(1);
+    expect(routes[0].path).toBe("/api/real");
+  });
+
+  it("should skip .output and .nuxt directories", async () => {
+    await setup({
+      "src/routes.ts": `
+        const app = express();
+        app.get("/api/items", handler);
+      `,
+      ".output/server/index.js": `
+        app.get("/api/items", handler);
+        app.post("/api/extra", handler);
+      `,
+      ".nuxt/dist/index.js": `
+        app.get("/api/items", handler);
+      `,
+    });
+    const routes = await scanRoutes(tempDir, "express");
+    expect(routes).toHaveLength(1);
+    expect(routes[0].path).toBe("/api/items");
+  });
+
+  it("should ignore non-path string arguments (no leading /)", async () => {
+    await setup({
+      "src/index.ts": `
+        import { Hono } from "hono";
+        const app = new Hono();
+        app.get("/api/valid", (c) => c.json({}));
+        c.get("user");
+        headers.delete("Content-Type");
+      `,
+    });
+    const routes = await scanRoutes(tempDir, "hono");
+    expect(routes).toHaveLength(1);
+    expect(routes[0].path).toBe("/api/valid");
+  });
 });

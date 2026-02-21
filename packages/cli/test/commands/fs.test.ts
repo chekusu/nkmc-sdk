@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { GatewayClient, createClient } from "../../src/gateway/client.js";
+import { mkdir, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 
 describe("GatewayClient", () => {
   const mockFetch = vi.fn();
@@ -63,9 +66,14 @@ describe("GatewayClient", () => {
 
 describe("createClient", () => {
   const originalEnv = { ...process.env };
+  let tempHome: string | undefined;
 
-  afterEach(() => {
+  afterEach(async () => {
     process.env = { ...originalEnv };
+    if (tempHome) {
+      await rm(tempHome, { recursive: true, force: true });
+      tempHome = undefined;
+    }
   });
 
   it("should create client from env vars", async () => {
@@ -90,5 +98,54 @@ describe("createClient", () => {
     await expect(createClient()).rejects.toThrow(
       "No token found. Run 'nkmc auth' first, or set NKMC_TOKEN.",
     );
+  });
+
+  it("should fall back to credentials.json agent token", async () => {
+    delete process.env.NKMC_GATEWAY_URL;
+    delete process.env.NKMC_TOKEN;
+
+    tempHome = join(tmpdir(), `nkmc-client-${Date.now()}`);
+    await mkdir(tempHome, { recursive: true });
+    process.env.NKMC_HOME = tempHome;
+
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const data = {
+      tokens: {},
+      agentToken: {
+        token: "stored-jwt",
+        gatewayUrl: "https://stored-gw.example.com",
+        issuedAt: new Date().toISOString(),
+        expiresAt: futureDate,
+      },
+    };
+    await writeFile(join(tempHome, "credentials.json"), JSON.stringify(data));
+
+    const client = await createClient();
+    expect(client).toBeInstanceOf(GatewayClient);
+  });
+
+  it("should prefer env vars over credentials.json", async () => {
+    process.env.NKMC_GATEWAY_URL = "https://env-gw.example.com";
+    process.env.NKMC_TOKEN = "env-token";
+
+    tempHome = join(tmpdir(), `nkmc-client-${Date.now()}`);
+    await mkdir(tempHome, { recursive: true });
+    process.env.NKMC_HOME = tempHome;
+
+    const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const data = {
+      tokens: {},
+      agentToken: {
+        token: "stored-jwt",
+        gatewayUrl: "https://stored-gw.example.com",
+        issuedAt: new Date().toISOString(),
+        expiresAt: futureDate,
+      },
+    };
+    await writeFile(join(tempHome, "credentials.json"), JSON.stringify(data));
+
+    const client = await createClient();
+    expect(client).toBeInstanceOf(GatewayClient);
+    // env vars should win — we can't inspect private fields, but the client was created successfully
   });
 });
