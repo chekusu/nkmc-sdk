@@ -92,6 +92,8 @@ function handleError(err: unknown, cmdPath?: string): never {
       console.error(`Error: Authentication required for ${domain}`);
       if (hint?.guideUrl) {
         console.error(`  Get your key:  ${hint.guideUrl}`);
+      } else {
+        console.error(`  Get your key:  https://${domain} (check the developer/API settings)`);
       }
       console.error(`  Set your key:  nkmc keys set ${domain} --token <YOUR_KEY> --sync`);
       console.error(`  Then retry your command.`);
