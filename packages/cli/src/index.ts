@@ -46,12 +46,7 @@ program
   .option("--gateway-url <url>", "Gateway URL")
   .action(async (domain: string, opts: Record<string, string | boolean | undefined>) => {
     const gatewayUrl =
-      (opts.gatewayUrl as string | undefined) ?? process.env.NKMC_GATEWAY_URL;
-    if (!gatewayUrl) {
-      throw new Error(
-        "Gateway URL is required. Use --gateway-url or NKMC_GATEWAY_URL env var.",
-      );
-    }
+      (opts.gatewayUrl as string | undefined) ?? process.env.NKMC_GATEWAY_URL ?? "https://api.nkmc.ai";
     await runClaim({
       gatewayUrl,
       domain,

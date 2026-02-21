@@ -82,14 +82,8 @@ export async function runRegister(options: {
   const projectDir = options.dir ?? process.cwd();
 
   const gatewayUrl =
-    options.gatewayUrl ?? process.env.NKMC_GATEWAY_URL;
+    options.gatewayUrl ?? process.env.NKMC_GATEWAY_URL ?? "https://api.nkmc.ai";
   const domain = options.domain ?? process.env.NKMC_DOMAIN;
-
-  if (!gatewayUrl) {
-    throw new Error(
-      "Gateway URL is required. Use --gateway-url or NKMC_GATEWAY_URL env var.",
-    );
-  }
   if (!domain) {
     throw new Error(
       "Domain is required. Use --domain or NKMC_DOMAIN env var.",
