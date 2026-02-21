@@ -1,0 +1,13 @@
+{
+  "name": "nkmc-sdk",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
+  }
+}

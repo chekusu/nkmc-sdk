@@ -1,0 +1,31 @@
+{
+  "name": "@nkmc/cli",
+  "version": "0.1.0",
+  "description": "CLI for scanning and registering APIs with the nkmc gateway",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "nkmc": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "dependencies": {
+    "@mrleebo/prisma-ast": "^0.13.1",
+    "@nkmc/core": "workspace:^",
+    "commander": "^13.0.0",
+    "ts-morph": "^27.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chekusu/nkmc-sdk.git",
+    "directory": "packages/cli"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ]
+}
