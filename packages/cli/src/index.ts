@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import { Command } from "commander";
 import { runInit } from "./commands/init.js";
 import { runGenerate } from "./commands/generate.js";
@@ -7,9 +8,12 @@ import { runAuth } from "./commands/auth.js";
 import { registerFsCommands } from "./commands/fs.js";
 import { registerKeysCommand } from "./commands/keys.js";
 
+const require = createRequire(import.meta.url);
+const { version } = require("../../package.json");
+
 const program = new Command();
 
-program.name("nkmc").description("nkmc SDK CLI").version("0.1.0");
+program.name("nkmc").description("nkmc SDK CLI").version(version);
 
 program
   .command("init")
