@@ -119,12 +119,15 @@ nkmc register --domain api.example.com
 
 ### 5. Protect Your Routes
 
+- **`siteId`** — The domain you claimed in step 3 (e.g. `api.example.com`)
+- **`NKMC_PUBLIC_KEY`** — The gateway's EdDSA public key (JWK). Fetch it from [`https://api.nkmc.ai/.well-known/jwks.json`](https://api.nkmc.ai/.well-known/jwks.json) and store it as an environment variable.
+
 ```typescript
 import { Nkmc } from "@nkmc/core";
 
 const nkmc = Nkmc.init({
-  siteId: "api.example.com",
-  gatewayPublicKey: process.env.NKMC_PUBLIC_KEY,
+  siteId: "api.example.com",                   // your claimed domain
+  gatewayPublicKey: process.env.NKMC_PUBLIC_KEY, // from /.well-known/jwks.json
 });
 
 // Verify all agent requests

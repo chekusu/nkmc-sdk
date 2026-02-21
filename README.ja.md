@@ -119,12 +119,15 @@ nkmc register --domain api.example.com
 
 ### 5. ルートの保護
 
+- **`siteId`** — ステップ 3 で申請したドメイン（例：`api.example.com`）
+- **`NKMC_PUBLIC_KEY`** — ゲートウェイの EdDSA 公開鍵（JWK 形式）。[`https://api.nkmc.ai/.well-known/jwks.json`](https://api.nkmc.ai/.well-known/jwks.json) から取得し、環境変数に保存してください。
+
 ```typescript
 import { Nkmc } from "@nkmc/core";
 
 const nkmc = Nkmc.init({
-  siteId: "api.example.com",
-  gatewayPublicKey: process.env.NKMC_PUBLIC_KEY,
+  siteId: "api.example.com",                   // 申請したドメイン
+  gatewayPublicKey: process.env.NKMC_PUBLIC_KEY, // /.well-known/jwks.json から取得
 });
 
 // すべてのエージェントリクエストを検証

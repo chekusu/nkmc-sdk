@@ -119,12 +119,15 @@ nkmc register --domain api.example.com
 
 ### 5. 保护路由
 
+- **`siteId`** — 第 3 步中认领的域名（如 `api.example.com`）
+- **`NKMC_PUBLIC_KEY`** — 网关的 EdDSA 公钥（JWK 格式）。从 [`https://api.nkmc.ai/.well-known/jwks.json`](https://api.nkmc.ai/.well-known/jwks.json) 获取，保存为环境变量。
+
 ```typescript
 import { Nkmc } from "@nkmc/core";
 
 const nkmc = Nkmc.init({
-  siteId: "api.example.com",
-  gatewayPublicKey: process.env.NKMC_PUBLIC_KEY,
+  siteId: "api.example.com",                   // 你认领的域名
+  gatewayPublicKey: process.env.NKMC_PUBLIC_KEY, // 来自 /.well-known/jwks.json
 });
 
 // 验证所有 Agent 请求
