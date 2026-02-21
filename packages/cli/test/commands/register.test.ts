@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { registerService, resolveToken } from "../../src/commands/register.js";
+import { registerService, resolveToken, runRegister } from "../../src/commands/register.js";
 import { writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -172,5 +172,63 @@ describe("resolveToken", () => {
       domain: "test.com",
     });
     expect(token).toBe("env-publish");
+  });
+});
+
+describe("runRegister", () => {
+  const savedEnv = {
+    NKMC_GATEWAY_URL: process.env.NKMC_GATEWAY_URL,
+    NKMC_DOMAIN: process.env.NKMC_DOMAIN,
+  };
+
+  afterEach(() => {
+    for (const [key, val] of Object.entries(savedEnv)) {
+      if (val === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = val;
+      }
+    }
+    vi.restoreAllMocks();
+  });
+
+  it("should throw if gatewayUrl is missing", async () => {
+    delete process.env.NKMC_GATEWAY_URL;
+    await expect(
+      runRegister({ domain: "test.com", token: "t" }),
+    ).rejects.toThrow("Gateway URL is required");
+  });
+
+  it("should throw if domain is missing", async () => {
+    delete process.env.NKMC_DOMAIN;
+    await expect(
+      runRegister({ gatewayUrl: "https://gw.test.com", token: "t" }),
+    ).rejects.toThrow("Domain is required");
+  });
+
+  it("should use env var fallbacks for gatewayUrl and domain", async () => {
+    process.env.NKMC_GATEWAY_URL = "https://env-gw.test.com";
+    process.env.NKMC_DOMAIN = "env-domain.com";
+
+    const tempDir = join(tmpdir(), `nkmc-reg-${Date.now()}`);
+    await mkdir(join(tempDir, ".well-known"), { recursive: true });
+    await writeFile(
+      join(tempDir, ".well-known", "skill.md"),
+      "---\nname: Test\n---\n# Test",
+    );
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true, domain: "env-domain.com", name: "Test" }),
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    await runRegister({ token: "my-token", dir: tempDir });
+
+    const [url] = mockFetch.mock.calls[0];
+    expect(url).toContain("env-gw.test.com");
+    expect(url).toContain("env-domain.com");
+
+    await rm(tempDir, { recursive: true, force: true });
   });
 });

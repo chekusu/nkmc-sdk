@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { VERSION, defineConfig } from "@nkmc/core";
 import type {
   SkillDefinition,
   SkillFrontmatter,
@@ -6,6 +7,7 @@ import type {
   SchemaField,
   ApiEndpoint,
   PricingRule,
+  NkmcConfig,
 } from "@nkmc/core";
 
 describe("Core Types", () => {
@@ -64,5 +66,39 @@ describe("Core Types", () => {
 
     expect(skill.frontmatter.roles).toContain("agent");
     expect(skill.schema).toHaveLength(0);
+  });
+});
+
+describe("VERSION", () => {
+  it("should be a semver string", () => {
+    expect(VERSION).toMatch(/^\d+\.\d+\.\d+$/);
+  });
+});
+
+describe("defineConfig", () => {
+  it("should return the same config object", () => {
+    const config: NkmcConfig = {
+      name: "test",
+      version: "1.0",
+      roles: ["agent"],
+      framework: "hono",
+    };
+    expect(defineConfig(config)).toBe(config);
+  });
+
+  it("should accept config with all optional fields", () => {
+    const config = defineConfig({
+      name: "full",
+      version: "2.0",
+      roles: ["agent", "premium"],
+      framework: "express",
+      orm: "prisma",
+      schemaPath: "prisma/schema.prisma",
+      pricing: { "POST /api/orders": { cost: 0.05, token: "USDC" } },
+      gatewayUrl: "https://api.nkmc.ai",
+      domain: "myapi.com",
+    });
+    expect(config.name).toBe("full");
+    expect(config.pricing?.["POST /api/orders"]?.cost).toBe(0.05);
   });
 });
