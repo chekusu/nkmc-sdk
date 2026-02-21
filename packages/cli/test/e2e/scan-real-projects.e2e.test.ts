@@ -3,119 +3,261 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { detectFramework } from "../../src/scanner/detect.js";
-import { scanRoutes } from "../../src/scanner/routes.js";
+import { scanRoutes, type ScannedRoute } from "../../src/scanner/routes.js";
 
 const CODES = join(homedir(), "Codes");
 
 /**
- * E2E tests that scan real local projects.
- * These validate the scanner against actual codebases rather than
- * synthetic fixtures, catching issues like .wrangler false positives.
+ * E2E tests that scan real local projects in ~/Codes/.
+ * Assert against the exact route list to catch regressions
+ * (e.g. .wrangler false positives, non-path string leaks).
  *
- * Tests are skipped if the project directory doesn't exist on the machine.
+ * Tests are skipped if the project directory doesn't exist.
  */
 
-describe.skipIf(!existsSync(join(CODES, "shipcast")))("E2E: shipcast (Hono)", () => {
+/** Sort route pairs for stable comparison */
+function toSortedPairs(routes: ScannedRoute[]): [string, string][] {
+  return routes
+    .map((r) => [r.method, r.path] as [string, string])
+    .sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]));
+}
+
+// ─── shipcast ──────────────────────────────────────────────
+
+describe.skipIf(!existsSync(join(CODES, "shipcast")))("E2E: shipcast", () => {
   const projectDir = join(CODES, "shipcast");
+
+  const EXPECTED: [string, string][] = [
+    ["DELETE", "/:id"],
+    ["GET", "/"],
+    ["GET", "/"],
+    ["GET", "/:id"],
+    ["GET", "/:id"],
+    ["GET", "/api/images/*"],
+    ["GET", "/callback"],
+    ["GET", "/github"],
+    ["GET", "/github-app/callback"],
+    ["GET", "/health"],
+    ["GET", "/installations"],
+    ["GET", "/installations/:id/repos"],
+    ["GET", "/me"],
+    ["GET", "/products/:id/twitter/connect"],
+    ["GET", "/repos/:owner/:repo/commits"],
+    ["GET", "/status"],
+    ["GET", "/tweet-preview/:productId"],
+    ["GET", "/twitter/callback"],
+    ["POST", "/"],
+    ["POST", "/"],
+    ["POST", "/checkout"],
+    ["POST", "/checkout-wechat"],
+    ["POST", "/logout"],
+    ["POST", "/portal"],
+    ["POST", "/preview/:productId"],
+    ["POST", "/publish/:productId"],
+    ["POST", "/tweet-preview/:productId"],
+    ["POST", "/webhook"],
+    ["PUT", "/:id"],
+  ];
 
   it("should detect hono framework", async () => {
     const detected = await detectFramework(projectDir);
     expect(detected.framework).toBe("hono");
   });
 
-  it("should find expected number of routes", async () => {
+  it("should match exact route list", async () => {
     const routes = await scanRoutes(projectDir, "hono");
-    // shipcast has ~29 routes; allow small variance for ongoing development
-    expect(routes.length).toBeGreaterThanOrEqual(20);
-    expect(routes.length).toBeLessThan(60);
+    expect(toSortedPairs(routes)).toEqual(EXPECTED);
   });
 
-  it("should find core routes", async () => {
+  it("should not include files from .wrangler", async () => {
     const routes = await scanRoutes(projectDir, "hono");
-    const paths = routes.map((r) => `${r.method} ${r.path}`);
-
-    expect(paths).toContain("GET /health");
-    expect(paths).toContain("GET /api/images/*");
-  });
-
-  it("should not include non-route strings", async () => {
-    const routes = await scanRoutes(projectDir, "hono");
-    for (const route of routes) {
-      expect(route.path).toMatch(/^\//);
-    }
-  });
-
-  it("should not scan .wrangler build artifacts", async () => {
-    const routes = await scanRoutes(projectDir, "hono");
-    for (const route of routes) {
-      expect(route.filePath).not.toContain(".wrangler");
+    for (const r of routes) {
+      expect(r.filePath).not.toContain(".wrangler");
     }
   });
 });
 
-describe.skipIf(!existsSync(join(CODES, "nakamichi/packages/gateway")))("E2E: nakamichi gateway (Hono)", () => {
+// ─── nakamichi gateway ─────────────────────────────────────
+
+describe.skipIf(!existsSync(join(CODES, "nakamichi/packages/gateway")))("E2E: nakamichi gateway", () => {
   const projectDir = join(CODES, "nakamichi/packages/gateway");
+
+  const EXPECTED: [string, string][] = [
+    ["DELETE", "/:domain"],
+    ["DELETE", "/:domain"],
+    ["DELETE", "/payment-methods/:id"],
+    ["DELETE", "/services/:domain"],
+    ["GET", "/"],
+    ["GET", "/"],
+    ["GET", "/"],
+    ["GET", "/:domain"],
+    ["GET", "/:domain"],
+    ["GET", "/.well-known/jwks.json"],
+    ["GET", "/agents"],
+    ["GET", "/balance"],
+    ["GET", "/callback"],
+    ["GET", "/github"],
+    ["GET", "/installations"],
+    ["GET", "/installations/:id/repos"],
+    ["GET", "/jobs/:id"],
+    ["GET", "/me"],
+    ["GET", "/payment-methods"],
+    ["GET", "/services"],
+    ["GET", "/services/:domain"],
+    ["GET", "/services/:domain/versions"],
+    ["GET", "/services/:domain/versions/:version"],
+    ["GET", "/usage"],
+    ["POST", "/challenge"],
+    ["POST", "/claim"],
+    ["POST", "/execute"],
+    ["POST", "/logout"],
+    ["POST", "/repos/:owner/:repo/analyze"],
+    ["POST", "/services"],
+    ["POST", "/setup-intent"],
+    ["POST", "/token"],
+    ["POST", "/top-up"],
+    ["POST", "/topup-checkout"],
+    ["POST", "/verify"],
+    ["POST", "/webhook"],
+    ["PUT", "/:domain"],
+    ["PUT", "/:domain/pricing"],
+    ["PUT", "/:domain/status"],
+  ];
 
   it("should detect hono framework", async () => {
     const detected = await detectFramework(projectDir);
     expect(detected.framework).toBe("hono");
   });
 
-  it("should find expected number of routes", async () => {
+  it("should match exact route list", async () => {
     const routes = await scanRoutes(projectDir, "hono");
-    expect(routes.length).toBeGreaterThanOrEqual(25);
-    expect(routes.length).toBeLessThan(80);
-  });
-
-  it("should find core gateway routes", async () => {
-    const routes = await scanRoutes(projectDir, "hono");
-    const paths = routes.map((r) => `${r.method} ${r.path}`);
-
-    expect(paths).toContain("GET /.well-known/jwks.json");
-    expect(paths).toContain("POST /token");
+    expect(toSortedPairs(routes)).toEqual(EXPECTED);
   });
 
   it("should only contain files from src/", async () => {
     const routes = await scanRoutes(projectDir, "hono");
-    for (const route of routes) {
-      expect(route.filePath).toMatch(/^src\//);
+    for (const r of routes) {
+      expect(r.filePath).toMatch(/^src\//);
     }
   });
 });
 
-describe.skipIf(!existsSync(join(CODES, "chatben/apps/api")))("E2E: chatben api (Hono + Drizzle)", () => {
+// ─── chatben api ───────────────────────────────────────────
+
+describe.skipIf(!existsSync(join(CODES, "chatben/apps/api")))("E2E: chatben api", () => {
   const projectDir = join(CODES, "chatben/apps/api");
 
-  it("should detect hono framework with drizzle ORM", async () => {
+  const EXPECTED: [string, string][] = [
+    ["DELETE", "/:id"],
+    ["DELETE", "/:id"],
+    ["DELETE", "/history"],
+    ["DELETE", "/queue/:id"],
+    ["GET", "/"],
+    ["GET", "/"],
+    ["GET", "/"],
+    ["GET", "/"],
+    ["GET", "/:id"],
+    ["GET", "/:id"],
+    ["GET", "/:id/claude-status"],
+    ["GET", "/:id/credentials/status"],
+    ["GET", "/:id/download"],
+    ["GET", "/:id/messages"],
+    ["GET", "/:taskId"],
+    ["GET", "/:taskId/:path{.+}"],
+    ["GET", "/:taskId/*"],
+    ["GET", "/:taskId/download"],
+    ["GET", "/callback"],
+    ["GET", "/credentials"],
+    ["GET", "/credentials/status"],
+    ["GET", "/credentials/store"],
+    ["GET", "/github"],
+    ["GET", "/github-app/callback"],
+    ["GET", "/health"],
+    ["GET", "/health"],
+    ["GET", "/history"],
+    ["GET", "/me"],
+    ["GET", "/me"],
+    ["GET", "/me/github-installations"],
+    ["GET", "/me/github-installations/:installationId/repos"],
+    ["GET", "/me/github-repos"],
+    ["GET", "/me/settings"],
+    ["GET", "/payment-method"],
+    ["GET", "/plans"],
+    ["GET", "/queue"],
+    ["GET", "/queue/:id"],
+    ["GET", "/running"],
+    ["GET", "/sandbox-machine"],
+    ["GET", "/skill-pool/machines"],
+    ["GET", "/skill-pool/status"],
+    ["GET", "/status"],
+    ["GET", "/subscription"],
+    ["GET", "/task-quota"],
+    ["GET", "/tasks/:taskId"],
+    ["GET", "/uploads/:userId/:filename"],
+    ["GET", "/ws"],
+    ["GET", "/ws-token"],
+    ["PATCH", "/:id"],
+    ["PATCH", "/me"],
+    ["PATCH", "/me/settings"],
+    ["POST", "/"],
+    ["POST", "/"],
+    ["POST", "/"],
+    ["POST", "/:id/cancel"],
+    ["POST", "/:id/claude-login"],
+    ["POST", "/:id/credentials/sync"],
+    ["POST", "/:id/exec"],
+    ["POST", "/:id/exec/stream"],
+    ["POST", "/:id/execute"],
+    ["POST", "/:id/extend"],
+    ["POST", "/:id/messages"],
+    ["POST", "/:id/sleep"],
+    ["POST", "/:id/stop"],
+    ["POST", "/:id/terminal/start"],
+    ["POST", "/:id/wake"],
+    ["POST", "/chat"],
+    ["POST", "/checkout"],
+    ["POST", "/credentials/ensure"],
+    ["POST", "/credentials/refresh"],
+    ["POST", "/credentials/seed"],
+    ["POST", "/logout"],
+    ["POST", "/magic-link"],
+    ["POST", "/me/github-installations/:installationId/access-token"],
+    ["POST", "/me/github-installations/:installationId/clone-url"],
+    ["POST", "/portal"],
+    ["POST", "/queue/join"],
+    ["POST", "/sandboxes/destroy"],
+    ["POST", "/sandboxes/destroy-all"],
+    ["POST", "/setup-checkout"],
+    ["POST", "/skill-pool/config"],
+    ["POST", "/skill-pool/register"],
+    ["POST", "/skill-pool/reset"],
+    ["POST", "/skill-pool/unregister"],
+    ["POST", "/skill-pool/warmup"],
+    ["POST", "/tasks/:id/complete"],
+    ["POST", "/tasks/:id/credentials/refresh"],
+    ["POST", "/tasks/:id/output"],
+    ["POST", "/tasks/:id/step"],
+    ["POST", "/tasks/:id/steps"],
+    ["POST", "/upload"],
+    ["POST", "/verify"],
+    ["POST", "/webhook"],
+  ];
+
+  it("should detect hono + drizzle", async () => {
     const detected = await detectFramework(projectDir);
     expect(detected.framework).toBe("hono");
     expect(detected.orm).toBe("drizzle");
   });
 
-  it("should find expected number of routes", async () => {
+  it("should match exact route list", async () => {
     const routes = await scanRoutes(projectDir, "hono");
-    expect(routes.length).toBeGreaterThanOrEqual(60);
-    expect(routes.length).toBeLessThan(150);
+    expect(toSortedPairs(routes)).toEqual(EXPECTED);
   });
 
-  it("should find core routes", async () => {
+  it("should not include build artifacts", async () => {
     const routes = await scanRoutes(projectDir, "hono");
-    const paths = routes.map((r) => `${r.method} ${r.path}`);
-
-    expect(paths).toContain("GET /health");
-  });
-
-  it("should have all routes starting with /", async () => {
-    const routes = await scanRoutes(projectDir, "hono");
-    for (const route of routes) {
-      expect(route.path).toMatch(/^\//);
-    }
-  });
-
-  it("should not scan node_modules or build directories", async () => {
-    const routes = await scanRoutes(projectDir, "hono");
-    for (const route of routes) {
-      expect(route.filePath).not.toMatch(/node_modules|\.wrangler|dist|build/);
+    for (const r of routes) {
+      expect(r.filePath).not.toMatch(/node_modules|\.wrangler|dist|build/);
     }
   });
 });
