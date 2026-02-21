@@ -68,23 +68,27 @@ describe("createClient", () => {
     process.env = { ...originalEnv };
   });
 
-  it("should create client from env vars", () => {
+  it("should create client from env vars", async () => {
     process.env.NKMC_GATEWAY_URL = "https://gw.example.com";
     process.env.NKMC_TOKEN = "my-token";
 
-    const client = createClient();
+    const client = await createClient();
     expect(client).toBeInstanceOf(GatewayClient);
   });
 
-  it("should throw if NKMC_GATEWAY_URL is missing", () => {
+  it("should use default gateway URL when env var missing", async () => {
     delete process.env.NKMC_GATEWAY_URL;
     process.env.NKMC_TOKEN = "my-token";
-    expect(() => createClient()).toThrow("NKMC_GATEWAY_URL is required");
+
+    const client = await createClient();
+    expect(client).toBeInstanceOf(GatewayClient);
   });
 
-  it("should throw if NKMC_TOKEN is missing", () => {
-    process.env.NKMC_GATEWAY_URL = "https://gw.example.com";
+  it("should throw if no token available", async () => {
+    delete process.env.NKMC_GATEWAY_URL;
     delete process.env.NKMC_TOKEN;
-    expect(() => createClient()).toThrow("NKMC_TOKEN is required");
+    await expect(createClient()).rejects.toThrow(
+      "No token found. Run 'nkmc auth' first, or set NKMC_TOKEN.",
+    );
   });
 });

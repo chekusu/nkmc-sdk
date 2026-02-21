@@ -3,6 +3,7 @@ import { runInit } from "./commands/init.js";
 import { runGenerate } from "./commands/generate.js";
 import { runRegister } from "./commands/register.js";
 import { runClaim } from "./commands/claim.js";
+import { runAuth } from "./commands/auth.js";
 import { registerFsCommands } from "./commands/fs.js";
 
 const program = new Command();
@@ -74,6 +75,14 @@ program
       domain: opts.domain,
       dir: opts.dir === "." ? process.cwd() : opts.dir,
     });
+  });
+
+program
+  .command("auth")
+  .description("Authenticate with the nkmc gateway")
+  .option("--gateway-url <url>", "Gateway URL (default: https://api.nkmc.ai)")
+  .action(async (opts: Record<string, string | undefined>) => {
+    await runAuth({ gatewayUrl: opts.gatewayUrl });
   });
 
 registerFsCommands(program);

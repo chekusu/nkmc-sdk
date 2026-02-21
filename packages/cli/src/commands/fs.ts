@@ -18,7 +18,7 @@ export function registerFsCommands(program: Command): void {
     .argument("<path>", "Directory path")
     .action(async (path: string) => {
       try {
-        const client = createClient();
+        const client = await createClient();
         const result = await client.execute(`ls ${path}`);
         output(result);
       } catch (err) {
@@ -32,7 +32,7 @@ export function registerFsCommands(program: Command): void {
     .argument("<path>", "File path")
     .action(async (path: string) => {
       try {
-        const client = createClient();
+        const client = await createClient();
         const result = await client.execute(`cat ${path}`);
         output(result);
       } catch (err) {
@@ -47,7 +47,7 @@ export function registerFsCommands(program: Command): void {
     .argument("<data>", "Data to write")
     .action(async (path: string, data: string) => {
       try {
-        const client = createClient();
+        const client = await createClient();
         const result = await client.execute(`write ${path} ${data}`);
         output(result);
       } catch (err) {
@@ -61,7 +61,7 @@ export function registerFsCommands(program: Command): void {
     .argument("<path>", "File path")
     .action(async (path: string) => {
       try {
-        const client = createClient();
+        const client = await createClient();
         const result = await client.execute(`rm ${path}`);
         output(result);
       } catch (err) {
@@ -76,7 +76,7 @@ export function registerFsCommands(program: Command): void {
     .argument("<path>", "File or directory path")
     .action(async (pattern: string, path: string) => {
       try {
-        const client = createClient();
+        const client = await createClient();
         const result = await client.execute(`grep ${pattern} ${path}`);
         output(result);
       } catch (err) {

@@ -9,8 +9,16 @@ interface TokenEntry {
   expiresAt: string;
 }
 
+interface AgentTokenEntry {
+  token: string;
+  gatewayUrl: string;
+  issuedAt: string;
+  expiresAt: string;
+}
+
 interface CredentialStore {
   tokens: Record<string, TokenEntry>;
+  agentToken?: AgentTokenEntry;
 }
 
 function nkmcDir(): string {
@@ -54,6 +62,44 @@ export async function saveToken(
   const filePath = credentialsPath();
   await writeFile(filePath, JSON.stringify(creds, null, 2) + "\n");
   await chmod(filePath, 0o600);
+}
+
+export async function saveAgentToken(
+  gatewayUrl: string,
+  token: string,
+): Promise<void> {
+  const creds = await loadCredentials();
+
+  const payloadB64 = token.split(".")[1];
+  const payload = JSON.parse(
+    Buffer.from(payloadB64, "base64url").toString("utf-8"),
+  );
+
+  creds.agentToken = {
+    token,
+    gatewayUrl,
+    issuedAt: new Date(payload.iat * 1000).toISOString(),
+    expiresAt: new Date(payload.exp * 1000).toISOString(),
+  };
+
+  const dir = nkmcDir();
+  await mkdir(dir, { recursive: true });
+
+  const filePath = credentialsPath();
+  await writeFile(filePath, JSON.stringify(creds, null, 2) + "\n");
+  await chmod(filePath, 0o600);
+}
+
+export async function getAgentToken(): Promise<AgentTokenEntry | null> {
+  const creds = await loadCredentials();
+  const entry = creds.agentToken;
+  if (!entry) return null;
+
+  if (new Date(entry.expiresAt).getTime() < Date.now()) {
+    return null;
+  }
+
+  return entry;
 }
 
 export async function getToken(domain: string): Promise<string | null> {

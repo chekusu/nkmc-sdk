@@ -22,10 +22,20 @@ export class GatewayClient {
   }
 }
 
-export function createClient(): GatewayClient {
-  const gatewayUrl = process.env.NKMC_GATEWAY_URL;
-  const token = process.env.NKMC_TOKEN;
-  if (!gatewayUrl) throw new Error("NKMC_GATEWAY_URL is required");
-  if (!token) throw new Error("NKMC_TOKEN is required");
+export async function createClient(): Promise<GatewayClient> {
+  const { getAgentToken } = await import("../credentials.js");
+  const stored = await getAgentToken();
+
+  const gatewayUrl =
+    process.env.NKMC_GATEWAY_URL ?? stored?.gatewayUrl ?? "https://api.nkmc.ai";
+
+  const token = process.env.NKMC_TOKEN ?? stored?.token ?? null;
+
+  if (!token) {
+    throw new Error(
+      "No token found. Run 'nkmc auth' first, or set NKMC_TOKEN.",
+    );
+  }
+
   return new GatewayClient(gatewayUrl, token);
 }
