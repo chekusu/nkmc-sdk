@@ -17,9 +17,6 @@
     "commander": "^13.0.0",
     "ts-morph": "^27.0.2"
   },
-  "optionalDependencies": {
-    "@shipkey/core": "^0.1.0"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/chekusu/nkmc-sdk.git",
