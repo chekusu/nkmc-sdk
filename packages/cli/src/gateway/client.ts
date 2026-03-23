@@ -69,6 +69,48 @@ export class GatewayClient {
       throw new Error(`BYOK delete failed ${res.status}: ${body}`);
     }
   }
+
+  // --- Proxy methods ---
+
+  async proxyExec(
+    tool: string,
+    args: string[],
+  ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+    const url = `${this.baseUrl()}/proxy/exec`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tool, args }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Proxy exec failed ${res.status}: ${body}`);
+    }
+    return res.json() as Promise<{
+      stdout: string;
+      stderr: string;
+      exitCode: number;
+    }>;
+  }
+
+  async listTools(): Promise<
+    { tools: { name: string; credentialDomain: string }[] }
+  > {
+    const url = `${this.baseUrl()}/proxy/tools`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${this.token}` },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`List tools failed ${res.status}: ${body}`);
+    }
+    return res.json() as Promise<{
+      tools: { name: string; credentialDomain: string }[];
+    }>;
+  }
 }
 
 export async function createClient(): Promise<GatewayClient> {

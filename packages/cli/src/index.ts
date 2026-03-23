@@ -10,6 +10,7 @@ import { runAuth } from "./commands/auth.js";
 import { registerFsCommands } from "./commands/fs.js";
 import { registerKeysCommand } from "./commands/keys.js";
 import { runGatewayStart } from "./commands/gateway.js";
+import { runProxy } from "./commands/run.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const { version } = JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf-8"));
@@ -86,6 +87,14 @@ program
   .option("--gateway-url <url>", "Gateway URL (default: https://api.nkmc.ai)")
   .action(async (opts: Record<string, string | undefined>) => {
     await runAuth({ gatewayUrl: opts.gatewayUrl });
+  });
+
+program
+  .command("run <tool> [args...]")
+  .description("Run a CLI tool with credentials injected from gateway")
+  .allowUnknownOption()
+  .action(async (tool: string, args: string[]) => {
+    await runProxy(tool, args);
   });
 
 registerFsCommands(program);
