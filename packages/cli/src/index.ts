@@ -9,6 +9,7 @@ import { runClaim } from "./commands/claim.js";
 import { runAuth } from "./commands/auth.js";
 import { registerFsCommands } from "./commands/fs.js";
 import { registerKeysCommand } from "./commands/keys.js";
+import { runGatewayStart } from "./commands/gateway.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const { version } = JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf-8"));
@@ -89,5 +90,13 @@ program
 
 registerFsCommands(program);
 registerKeysCommand(program);
+
+const gw = program.command("gateway").description("Manage local nkmc gateway");
+
+gw.command("start")
+  .description("Start a local nkmc gateway")
+  .option("--port <port>", "Port to listen on", "9090")
+  .option("--data-dir <dir>", "Data directory")
+  .action((opts) => runGatewayStart(opts));
 
 program.parse();
