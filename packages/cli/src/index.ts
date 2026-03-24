@@ -10,7 +10,7 @@ import { runAuth } from "./commands/auth.js";
 import { registerFsCommands } from "./commands/fs.js";
 import { registerKeysCommand } from "./commands/keys.js";
 import { registerPeerCommands } from "./commands/peers.js";
-import { runGatewayStart } from "./commands/gateway.js";
+import { runGatewayStart, runGatewayStop, runGatewayStatus } from "./commands/gateway.js";
 import { runProxy } from "./commands/run.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -108,6 +108,17 @@ gw.command("start")
   .description("Start a local nkmc gateway")
   .option("--port <port>", "Port to listen on", "9090")
   .option("--data-dir <dir>", "Data directory")
+  .option("--daemon", "Run in background")
   .action((opts) => runGatewayStart(opts));
+
+gw.command("stop")
+  .description("Stop the local nkmc gateway")
+  .option("--data-dir <dir>", "Data directory")
+  .action((opts) => runGatewayStop(opts));
+
+gw.command("status")
+  .description("Check if the local gateway is running")
+  .option("--data-dir <dir>", "Data directory")
+  .action((opts) => runGatewayStatus(opts));
 
 program.parse();
