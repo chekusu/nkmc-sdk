@@ -66,7 +66,9 @@ program
 
 program
   .command("register")
-  .description("Register skill.md with the gateway")
+  .description("Register a service with the gateway (auto-discover from URL or skill.md)")
+  .option("--url <url>", "Service URL — auto-discover OpenAPI spec and register")
+  .option("--spec-url <url>", "Direct URL to OpenAPI spec (use with --url)")
   .option("--gateway-url <url>", "Gateway URL")
   .option("--token <token>", "Auth token (publish token or admin token)")
   .option("--admin-token <token>", "Admin token (deprecated, use --token)")
@@ -79,6 +81,8 @@ program
       adminToken: opts.adminToken,
       domain: opts.domain,
       dir: opts.dir === "." ? process.cwd() : opts.dir,
+      url: opts.url,
+      specUrl: opts.specUrl,
     });
   });
 

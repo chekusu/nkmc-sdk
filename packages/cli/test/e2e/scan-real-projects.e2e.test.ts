@@ -130,6 +130,7 @@ describe.skipIf(!existsSync(join(CODES, "nakamichi/packages/gateway")))("E2E: na
     ["POST", "/query"],
     ["POST", "/repos/:owner/:repo/analyze"],
     ["POST", "/services"],
+    ["POST", "/services/discover"],
     ["POST", "/setup-intent"],
     ["POST", "/token"],
     ["POST", "/top-up"],

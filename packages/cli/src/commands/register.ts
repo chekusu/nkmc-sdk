@@ -39,6 +39,48 @@ export async function registerService(options: RegisterOptions): Promise<void> {
   console.log(`Registered ${result.name} as ${result.domain}`);
 }
 
+export interface DiscoverOptions {
+  gatewayUrl: string;
+  token: string;
+  url: string;
+  domain?: string;
+  specUrl?: string;
+}
+
+export async function discoverAndRegister(options: DiscoverOptions): Promise<void> {
+  const { gatewayUrl, token, url, domain, specUrl } = options;
+
+  const endpoint = `${gatewayUrl.replace(/\/$/, "")}/registry/services/discover`;
+
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ url, domain, specUrl }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: "Unknown error" })) as any;
+    if (body.probed) {
+      console.error(`Could not find OpenAPI spec at ${url}`);
+      console.error("Probed paths:");
+      for (const p of body.probed) {
+        console.error(`  ${p}`);
+      }
+      console.error("\nUse --spec-url to provide the spec location directly.");
+      process.exit(1);
+    }
+    throw new Error(`Discovery failed (${res.status}): ${body.error ?? JSON.stringify(body)}`);
+  }
+
+  const result = await res.json() as { ok: boolean; domain: string; name: string; endpoints: number; source: string };
+  console.log(`Discovered and registered ${result.name} as ${result.domain}`);
+  console.log(`  Endpoints: ${result.endpoints}`);
+  console.log(`  Source: ${result.source}`);
+}
+
 async function renewToken(
   gatewayUrl: string,
   domain: string,
@@ -67,18 +109,13 @@ export async function resolveToken(options: {
   domain?: string;
   gatewayUrl?: string;
 }): Promise<string> {
-  // 1. --token flag
   if (options.token) return options.token;
-
-  // 2. NKMC_PUBLISH_TOKEN env
   if (process.env.NKMC_PUBLISH_TOKEN) return process.env.NKMC_PUBLISH_TOKEN;
 
-  // 3. ~/.nkmc/credentials.json (domain-scoped)
   if (options.domain) {
     const stored = await getToken(options.domain);
     if (stored) return stored;
 
-    // 3b. Token expired → auto-renew from gateway
     const gw = options.gatewayUrl ?? process.env.NKMC_GATEWAY_URL;
     if (gw) {
       const renewed = await renewToken(gw, options.domain);
@@ -86,13 +123,11 @@ export async function resolveToken(options: {
     }
   }
 
-  // 4. --admin-token flag (deprecated)
   if (options.adminToken) {
     console.warn("Warning: --admin-token is deprecated. Use `nkmc claim` to obtain a publish token.");
     return options.adminToken;
   }
 
-  // 5. NKMC_ADMIN_TOKEN env (backward compat)
   if (process.env.NKMC_ADMIN_TOKEN) {
     return process.env.NKMC_ADMIN_TOKEN;
   }
@@ -108,11 +143,42 @@ export async function runRegister(options: {
   adminToken?: string;
   domain?: string;
   dir?: string;
+  url?: string;
+  specUrl?: string;
 }): Promise<void> {
-  const projectDir = options.dir ?? process.cwd();
-
   const gatewayUrl =
     options.gatewayUrl ?? process.env.NKMC_GATEWAY_URL ?? "https://api.nkmc.ai";
+
+  // URL-based discovery mode
+  if (options.url) {
+    let domain = options.domain;
+    if (!domain) {
+      try {
+        domain = new URL(options.url).hostname;
+      } catch {
+        throw new Error("Invalid --url. Provide a valid URL like http://localhost:3000");
+      }
+    }
+
+    const token = await resolveToken({
+      token: options.token,
+      adminToken: options.adminToken,
+      domain,
+      gatewayUrl,
+    });
+
+    await discoverAndRegister({
+      gatewayUrl,
+      token,
+      url: options.url,
+      domain,
+      specUrl: options.specUrl,
+    });
+    return;
+  }
+
+  // Legacy skill.md mode
+  const projectDir = options.dir ?? process.cwd();
   const domain = options.domain ?? process.env.NKMC_DOMAIN;
   if (!domain) {
     throw new Error(
