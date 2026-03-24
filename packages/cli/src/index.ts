@@ -9,6 +9,7 @@ import { runClaim } from "./commands/claim.js";
 import { runAuth } from "./commands/auth.js";
 import { registerFsCommands } from "./commands/fs.js";
 import { registerKeysCommand } from "./commands/keys.js";
+import { registerPeerCommands } from "./commands/peers.js";
 import { runGatewayStart } from "./commands/gateway.js";
 import { runProxy } from "./commands/run.js";
 
@@ -99,6 +100,7 @@ program
 
 registerFsCommands(program);
 registerKeysCommand(program);
+registerPeerCommands(program);
 
 const gw = program.command("gateway").description("Manage local nkmc gateway");
 

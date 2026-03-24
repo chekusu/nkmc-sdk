@@ -111,6 +111,132 @@ export class GatewayClient {
       tools: { name: string; credentialDomain: string }[];
     }>;
   }
+
+  // --- Admin: Federation peer management ---
+
+  private getAdminToken(): string {
+    const token = process.env.NKMC_ADMIN_TOKEN;
+    if (!token) {
+      throw new Error(
+        "NKMC_ADMIN_TOKEN env var required for admin operations",
+      );
+    }
+    return token;
+  }
+
+  private adminHeaders(json = false): Record<string, string> {
+    const h: Record<string, string> = {
+      Authorization: `Bearer ${this.getAdminToken()}`,
+    };
+    if (json) h["Content-Type"] = "application/json";
+    return h;
+  }
+
+  async addPeer(
+    id: string,
+    opts: { name: string; url: string; sharedSecret: string },
+  ): Promise<void> {
+    const url = `${this.baseUrl()}/admin/federation/peers/${id}`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: this.adminHeaders(true),
+      body: JSON.stringify(opts),
+    });
+    if (!res.ok) {
+      throw new Error(
+        `Add peer failed ${res.status}: ${await res.text()}`,
+      );
+    }
+  }
+
+  async listPeers(): Promise<{ peers: { id: string; name: string; url: string; status: string }[] }> {
+    const url = `${this.baseUrl()}/admin/federation/peers`;
+    const res = await fetch(url, {
+      headers: this.adminHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(
+        `List peers failed ${res.status}: ${await res.text()}`,
+      );
+    }
+    return res.json() as Promise<{ peers: { id: string; name: string; url: string; status: string }[] }>;
+  }
+
+  async deletePeer(id: string): Promise<void> {
+    const url = `${this.baseUrl()}/admin/federation/peers/${id}`;
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: this.adminHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(
+        `Delete peer failed ${res.status}: ${await res.text()}`,
+      );
+    }
+  }
+
+  // --- Admin: Federation lending rules ---
+
+  async setRule(
+    domain: string,
+    opts: {
+      allow: boolean;
+      peers?: string[] | "*";
+      pricing?: { mode: string; amount?: number };
+    },
+  ): Promise<void> {
+    const url = `${this.baseUrl()}/admin/federation/rules/${domain}`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: this.adminHeaders(true),
+      body: JSON.stringify(opts),
+    });
+    if (!res.ok) {
+      throw new Error(
+        `Set rule failed ${res.status}: ${await res.text()}`,
+      );
+    }
+  }
+
+  async listRules(): Promise<{
+    rules: {
+      domain: string;
+      allow: boolean;
+      peers: string[] | "*";
+      pricing: { mode: string; amount?: number };
+    }[];
+  }> {
+    const url = `${this.baseUrl()}/admin/federation/rules`;
+    const res = await fetch(url, {
+      headers: this.adminHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(
+        `List rules failed ${res.status}: ${await res.text()}`,
+      );
+    }
+    return res.json() as Promise<{
+      rules: {
+        domain: string;
+        allow: boolean;
+        peers: string[] | "*";
+        pricing: { mode: string; amount?: number };
+      }[];
+    }>;
+  }
+
+  async deleteRule(domain: string): Promise<void> {
+    const url = `${this.baseUrl()}/admin/federation/rules/${domain}`;
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: this.adminHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(
+        `Delete rule failed ${res.status}: ${await res.text()}`,
+      );
+    }
+  }
 }
 
 export async function createClient(): Promise<GatewayClient> {
