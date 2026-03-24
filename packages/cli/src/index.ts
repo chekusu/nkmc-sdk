@@ -109,6 +109,7 @@ gw.command("start")
   .option("--port <port>", "Port to listen on", "9090")
   .option("--data-dir <dir>", "Data directory")
   .option("--daemon", "Run in background")
+  .option("--tunnel", "Expose gateway via Cloudflare Tunnel")
   .action((opts) => runGatewayStart(opts));
 
 gw.command("stop")

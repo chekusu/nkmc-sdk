@@ -237,6 +237,61 @@ export class GatewayClient {
       );
     }
   }
+
+  // --- Tunnel methods ---
+
+  async createTunnel(): Promise<{
+    tunnelId: string;
+    tunnelToken: string;
+    publicUrl: string;
+  }> {
+    const url = `${this.baseUrl()}/tunnels/create`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Create tunnel failed ${res.status}: ${body}`);
+    }
+    return res.json() as Promise<{
+      tunnelId: string;
+      tunnelToken: string;
+      publicUrl: string;
+    }>;
+  }
+
+  async deleteTunnel(id: string): Promise<void> {
+    const url = `${this.baseUrl()}/tunnels/${id}`;
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${this.token}` },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Delete tunnel failed ${res.status}: ${body}`);
+    }
+  }
+
+  async listTunnels(): Promise<{
+    tunnels: { id: string; name: string; publicUrl: string; status: string }[];
+  }> {
+    const url = `${this.baseUrl()}/tunnels`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${this.token}` },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`List tunnels failed ${res.status}: ${body}`);
+    }
+    return res.json() as Promise<{
+      tunnels: { id: string; name: string; publicUrl: string; status: string }[];
+    }>;
+  }
 }
 
 export async function createClient(): Promise<GatewayClient> {
