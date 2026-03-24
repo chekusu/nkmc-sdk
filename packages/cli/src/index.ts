@@ -18,7 +18,24 @@ const { version } = JSON.parse(readFileSync(resolve(__dirname, "../package.json"
 
 const program = new Command();
 
-program.name("nkmc").description("nkmc SDK CLI").version(version);
+program
+  .name("nkmc")
+  .description(
+    `The gateway of internet for all agents.
+
+  Quick start:
+    $ npm install -g @nkmc/cli @nkmc/server
+    $ nkmc gateway start                    # start local gateway
+    $ nkmc keys set github.com --token ghp_ # store a key (encrypted)
+    $ nkmc run gh repo list                 # proxy CLI with credentials
+
+  With public tunnel:
+    $ nkmc gateway start --tunnel           # auto-auth + CF tunnel
+    $ nkmc peers discover                   # find other gateways
+
+  Full reference: https://nkmc.ai/skill.md`,
+  )
+  .version(version);
 
 program
   .command("init")
@@ -96,7 +113,7 @@ program
 
 program
   .command("run <tool> [args...]")
-  .description("Run a CLI tool with credentials injected from gateway")
+  .description("Proxy a CLI tool through gateway (e.g. nkmc run gh repo list)")
   .allowUnknownOption()
   .action(async (tool: string, args: string[]) => {
     await runProxy(tool, args);
@@ -106,7 +123,7 @@ registerFsCommands(program);
 registerKeysCommand(program);
 registerPeerCommands(program);
 
-const gw = program.command("gateway").description("Manage local nkmc gateway");
+const gw = program.command("gateway").description("Start/stop local gateway (nkmc gateway start --tunnel)");
 
 gw.command("start")
   .description("Start a local nkmc gateway")

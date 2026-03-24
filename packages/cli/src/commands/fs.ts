@@ -108,7 +108,7 @@ function handleError(err: unknown, cmdPath?: string): never {
 export function registerFsCommands(program: Command): void {
   program
     .command("ls")
-    .description("List files in a directory")
+    .description("List services or API resources (e.g. nkmc ls /)")
     .argument("<path>", "Directory path")
     .action(async (path: string) => {
       try {
@@ -122,7 +122,7 @@ export function registerFsCommands(program: Command): void {
 
   program
     .command("cat")
-    .description("Read file contents")
+    .description("Read data from an API endpoint (e.g. nkmc cat /api.github.com/repos/owner/repo)")
     .argument("<path>", "File path")
     .action(async (path: string) => {
       try {
@@ -136,7 +136,7 @@ export function registerFsCommands(program: Command): void {
 
   program
     .command("write")
-    .description("Write data to a file")
+    .description("Send data to an API endpoint (POST)")
     .argument("<path>", "File path")
     .argument("<data>", "Data to write")
     .action(async (path: string, data: string) => {
@@ -151,7 +151,7 @@ export function registerFsCommands(program: Command): void {
 
   program
     .command("rm")
-    .description("Remove a file")
+    .description("Delete a resource via API (DELETE)")
     .argument("<path>", "File path")
     .action(async (path: string) => {
       try {
@@ -165,7 +165,7 @@ export function registerFsCommands(program: Command): void {
 
   program
     .command("grep")
-    .description("Search file contents")
+    .description("Search services or endpoints (e.g. nkmc grep \"weather\" /)")
     .argument("<pattern>", "Search pattern")
     .argument("<path>", "File or directory path")
     .action(async (pattern: string, path: string) => {
@@ -180,7 +180,7 @@ export function registerFsCommands(program: Command): void {
 
   program
     .command("pipe")
-    .description("Pipe commands: cat <path> | write <path>")
+    .description("Pipe data between APIs: cat /a | write /b")
     .argument("<expression...>", "Pipe expression")
     .action(async (expression: string[]) => {
       try {

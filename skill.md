@@ -1,12 +1,14 @@
 ---
 name: nkmc
-description: Federated API gateway CLI for AI agents — manage credentials, proxy CLI tools, and peer with other gateways
+description: The gateway of internet for all agents — manage credentials, proxy CLI tools, and peer with other gateways
 version: 0.5.0
 gateway: nkmc
 roles: [agent]
 ---
 
-nkmc is a CLI tool for interacting with the nkmc gateway network. It lets AI agents securely discover and call APIs, proxy CLI tools with credential injection, and participate in a federated gateway network.
+The gateway of internet for all agents. NaKaMiChi - the middle path, the right path.
+
+nkmc lets AI agents securely discover and call APIs, proxy CLI tools with credential injection, and participate in a federated gateway network.
 
 **Install:** `npm install -g @nkmc/cli @nkmc/server`
 

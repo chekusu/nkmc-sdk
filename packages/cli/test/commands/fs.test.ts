@@ -96,6 +96,9 @@ describe("createClient", () => {
   it("should throw if no token available", async () => {
     delete process.env.NKMC_GATEWAY_URL;
     delete process.env.NKMC_TOKEN;
+    tempHome = join(tmpdir(), `nkmc-client-empty-${Date.now()}`);
+    await mkdir(tempHome, { recursive: true });
+    process.env.NKMC_HOME = tempHome;
     await expect(createClient()).rejects.toThrow(
       "No token found. Run 'nkmc auth' first, or set NKMC_TOKEN.",
     );

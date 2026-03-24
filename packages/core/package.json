@@ -1,7 +1,7 @@
 {
   "name": "@nkmc/core",
   "version": "0.1.1",
-  "description": "Server-side SDK for authenticating agent requests via the nkmc gateway",
+  "description": "The gateway of internet for all agents — nkmc core SDK",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.cjs",
