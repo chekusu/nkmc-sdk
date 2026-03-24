@@ -1,23 +1,25 @@
 ---
 name: nkmc
 description: Federated API gateway CLI for AI agents — manage credentials, proxy CLI tools, and peer with other gateways
-version: 0.4.0
+version: 0.5.0
 gateway: nkmc
 roles: [agent]
 ---
 
 nkmc is a CLI tool for interacting with the nkmc gateway network. It lets AI agents securely discover and call APIs, proxy CLI tools with credential injection, and participate in a federated gateway network.
 
-**Install:** `npm install -g @nkmc/cli`
+**Install:** `npm install -g @nkmc/cli @nkmc/server`
 
 ---
 
 ## Quick Reference
 
 ```bash
-# Authenticate
-nkmc auth                                    # auth with hosted gateway (nkmc.ai)
-nkmc auth --gateway-url http://localhost:9090 # auth with local gateway
+# Start a local gateway (auto-generates keys, no setup needed)
+nkmc gateway start
+
+# Or with public tunnel (auto-authenticates with hosted gateway)
+nkmc gateway start --tunnel
 
 # Browse APIs
 nkmc ls /                                    # list all services
