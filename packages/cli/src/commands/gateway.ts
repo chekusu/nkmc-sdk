@@ -7,7 +7,8 @@ import {
   unlinkSync,
   mkdirSync,
 } from "node:fs";
-import { fork, spawn, type ChildProcess } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
+import { openSync, closeSync } from "node:fs";
 
 function pidFilePath(dataDir: string): string {
   return join(dataDir, "gateway.pid");
@@ -27,9 +28,9 @@ export async function runGatewayStart(opts: {
   mkdirSync(dataDir, { recursive: true });
   const port = parseInt(opts.port ?? "9090", 10);
 
-  // Check if already running
+  // Check if already running (only in daemon mode — foreground is launched by daemon)
   const pidFile = pidFilePath(dataDir);
-  if (existsSync(pidFile)) {
+  if (opts.daemon && existsSync(pidFile)) {
     const pid = parseInt(readFileSync(pidFile, "utf-8").trim(), 10);
     try {
       process.kill(pid, 0);
@@ -43,15 +44,21 @@ export async function runGatewayStart(opts: {
   }
 
   if (opts.daemon) {
-    const args = ["gateway", "start", "--port", String(port), "--data-dir", dataDir];
-    if (opts.tunnel) args.push("--tunnel");
+    const daemonArgs = [process.argv[1], "gateway", "start", "--foreground", "--port", String(port), "--data-dir", dataDir];
+    if (opts.tunnel) daemonArgs.push("--tunnel");
 
-    const child = fork(process.argv[1], args, {
+    // Log to file like portless does
+    const logPath = join(dataDir, "gateway.log");
+    const logFd = openSync(logPath, "a");
+
+    const child = spawn(process.execPath, daemonArgs, {
       detached: true,
-      stdio: "ignore",
+      stdio: ["ignore", logFd, logFd],
       env: { ...process.env, NKMC_DATA_DIR: dataDir, NKMC_PORT: String(port) },
+      windowsHide: true,
     });
     child.unref();
+    closeSync(logFd);
     writeFileSync(pidFile, String(child.pid), "utf-8");
 
     // Wait a moment for the server to start, then show status
